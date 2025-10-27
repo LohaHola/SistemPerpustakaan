@@ -3,6 +3,7 @@ session_start();
 require_once "config/database.php";
 require_once "classes/Buku.php";
 require_once "classes/Peminjaman.php";
+require_once "classes/Pengunjung.php";
 
 if (!isset($_SESSION['user'])) {
     header("Location: index.php");
@@ -11,6 +12,14 @@ if (!isset($_SESSION['user'])) {
 
 $user = $_SESSION['user'];
 $db = (new Database())->getConnection();
+
+// Log kunjungan (hanya sekali per sesi)
+if (!isset($_SESSION['kunjungan_logged'])) {
+    $pengunjung = new Pengunjung($db, $user['id_akun'], $user['nama_depan'] . ' ' . $user['nama_belakang'], $user['email']);
+    $pengunjung->logKunjungan();
+    $_SESSION['kunjungan_logged'] = true;
+}
+
 $bukuModel = new Buku($db);
 $allBooks = $bukuModel->getAllBuku();
 
@@ -48,7 +57,7 @@ if (in_array($user['role'], ['admin', 'komite'])) {
   <!-- 🏠 WELCOME MESSAGE -->
   <div class="card welcome-card">
     <h2>Selamat Datang, <?= htmlspecialchars($user['nama_depan'] . ' ' . $user['nama_belakang']) ?> 👋</h2>
-    <p>Senang melihatmu kembali di Sistem Perpustakaan Universitas Bengkulu</p>
+    <p>Senang melihatmu kembali di Sistem Perpustakaan</p>
   </div>
 
   <!-- 📚 DAFTAR BUKU -->
@@ -122,6 +131,69 @@ if (in_array($user['role'], ['admin', 'komite'])) {
       </tbody>
     </table>
   </div>
+
+  <!-- 👥 LOG KUNJUNGAN (ADMIN/KOMITE) -->
+  <?php if(in_array($user['role'], ['admin', 'komite'])): 
+    $page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
+    $logKunjungan = Pengunjung::getLogKunjungan($db, $page, 10);
+  ?>
+  <div class="card">
+    <h2>👥 Log Kunjungan Perpustakaan</h2>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>No</th>
+          <th>Waktu</th>
+          <th>Nama</th>
+          <th>Aktivitas</th>
+          <th>Detail</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <?php 
+        $no = ($page - 1) * 10 + 1;
+        foreach($logKunjungan['data'] as $log): ?>
+        <tr>
+          <td><?= $no++ ?></td>
+          <td><?= date('d/m/Y H:i:s', strtotime($log['waktu_kunjungan'])) ?></td>
+          <td><?= htmlspecialchars($log['nama_depan'].' '.$log['nama_belakang']) ?></td>
+          <td><?= htmlspecialchars(ucfirst($log['aktivitas'])) ?></td>
+          <td><?= htmlspecialchars($log['detail']) ?></td>
+          <td><?= htmlspecialchars($log['status']) ?></td>
+        </tr>
+        <?php endforeach; ?>
+      </tbody>
+    </table>
+
+    <!-- Pagination -->
+    <?php if($logKunjungan['pages'] > 1): ?>
+    <div class="pagination" style="text-align: center; margin-top: 20px;">
+      <?php if($page > 1): ?>
+        <a href="?page=<?= $page-1 ?>" class="button secondary">&laquo; Sebelumnya</a>
+      <?php endif; ?>
+
+      <?php 
+      for($i = max(1, $page-2); $i <= min($logKunjungan['pages'], $page+2); $i++): ?>
+        <a href="?page=<?= $i ?>" 
+           class="button <?= $i === $page ? 'primary' : 'secondary' ?>"
+           style="margin: 0 5px;">
+          <?= $i ?>
+        </a>
+      <?php endfor; ?>
+
+      <?php if($page < $logKunjungan['pages']): ?>
+        <a href="?page=<?= $page+1 ?>" class="button secondary">Selanjutnya &raquo;</a>
+      <?php endif; ?>
+
+      <p style="margin-top: 10px;">
+        Halaman <?= $page ?> dari <?= $logKunjungan['pages'] ?> 
+        (Total: <?= $logKunjungan['total'] ?> kunjungan)
+      </p>
+    </div>
+    <?php endif; ?>
+  </div>
+  <?php endif; ?>
 
   <!-- 🧾 DAFTAR SEMUA PEMINJAMAN (ADMIN/KOMITE) -->
   <?php if($allLoansStmt): ?>

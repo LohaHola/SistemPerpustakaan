@@ -15,6 +15,9 @@ $user = $_SESSION['user'] ?? null;
         <img src="assets/profile_icon.png" alt="Profil">
         <div class="profile-menu">
           <a href="profil.php">Profil</a>
+          <?php if ($user && $user['role'] === 'biasa'): ?>
+            <a href="daftar_komite.php">Daftar Komite Perpustakaan</a>
+          <?php endif; ?>
           <a href="logout.php">Logout</a>
         </div>
       </div>

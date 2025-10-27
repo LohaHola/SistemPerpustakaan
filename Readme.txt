@@ -45,6 +45,7 @@ SistemPerpustakaan/
 │   └── profile_icon.png
 │
 ├── index.php
+├── daftar_komite.php
 ├── register.php
 ├── home.php
 ├── pinjam.php

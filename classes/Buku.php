@@ -33,6 +33,15 @@ class Buku {
     }
 
     public function kurangiStok($id) {
+        // Cek stok terlebih dahulu
+        $stmt = $this->conn->prepare("SELECT stok FROM {$this->table} WHERE id_buku = ?");
+        $stmt->execute([$id]);
+        $stok = $stmt->fetchColumn();
+        
+        if ($stok <= 0) {
+            throw new Exception("Stok buku tidak tersedia");
+        }
+
         $stmt = $this->conn->prepare("UPDATE {$this->table} SET stok = stok - 1 WHERE id_buku = ? AND stok > 0");
         return $stmt->execute([$id]);
     }

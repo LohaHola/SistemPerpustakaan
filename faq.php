@@ -24,6 +24,12 @@ $user = $_SESSION['user'] ?? null;
     <h3>Bagaimana mengembalikan buku?</h3>
     <p>Buka <b>Status Peminjaman Saya</b> di beranda lalu klik <b>Kembalikan</b> pada baris yang sesuai.</p>
 
+
+    <h3>Bagaimana cara mendaftar sebagai Komite Perpustakaan?</h3>
+    <p>
+      Jika Anda login sebagai <b>Pengunjung Biasa</b>, klik nama Anda di pojok kanan atas lalu pilih <b>Daftar Komite Perpustakaan</b> pada menu profil. Setelah mendaftar, Anda akan mendapatkan akses tambahan untuk mengelola buku dan peminjaman.
+    </p>
+
     <h3>Siapa yang dapat menambah buku?</h3>
     <p>Hanya user dengan peran <b>admin</b> yang dapat menambah buku.</p>
 

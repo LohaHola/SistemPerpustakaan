@@ -36,7 +36,6 @@ class Akun {
         $hash = $user['password'];
 
         if (password_verify($password, $hash) || $hash === md5($password)) {
-            // upgrade hash lama ke bcrypt jika masih md5
             if ($hash === md5($password)) {
                 $newHash = password_hash($password, PASSWORD_DEFAULT);
                 $u = $this->conn->prepare("UPDATE {$this->table} SET password=? WHERE id_akun=?");

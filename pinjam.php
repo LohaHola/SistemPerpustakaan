@@ -29,18 +29,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!$id_buku || !$durasi_pinjam) {
         $message = "<span style='color:red;'>⚠️ Harap isi semua kolom.</span>";
     } else {
-        // Cek apakah buku masih tersedia
-        $bukuData = $buku->getBukuById($id_buku);
-        if ($bukuData && $bukuData['stok'] > 0) {
-            // Proses pinjam
-            if ($peminjaman->pinjam($user['id_akun'], $id_buku, $durasi_pinjam)) {
-                $buku->kurangiStok($id_buku);
-                $message = "<span style='color:green;'>✅ Buku berhasil dipinjam!</span>";
-            } else {
-                $message = "<span style='color:red;'>❌ Terjadi kesalahan saat meminjam buku.</span>";
-            }
-        } else {
-            $message = "<span style='color:red;'>❌ Stok buku tidak tersedia.</span>";
+        try {
+            // Get book info for logging
+            $bukuInfo = $buku->getBukuById($id_buku);
+            
+      // Proses peminjaman dan logging
+      if ($peminjaman->pinjam($user['id_akun'], $id_buku, $durasi_pinjam)) {
+        // Log the borrowing activity
+        require_once "classes/Pengunjung.php";
+        $pengunjung = new Pengunjung($db, $user['id_akun'], $user['nama_depan'] . ' ' . $user['nama_belakang'], $user['email']);
+        $pengunjung->logKunjungan('meminjam', "Buku: " . $bukuInfo['judul'] . " selama " . $durasi_pinjam . " hari");
+        // Success message shown to user (includes book title)
+        $message = "<span style='color:green;'>✅ Anda berhasil meminjam buku: " . htmlspecialchars($bukuInfo['judul']) . "</span>";
+      }
+      // peminjaman sudah diproses dan di-log oleh kode di atas
+        } catch (Exception $e) {
+            $message = "<span style='color:red;'>❌ " . htmlspecialchars($e->getMessage()) . "</span>";
         }
     }
 }

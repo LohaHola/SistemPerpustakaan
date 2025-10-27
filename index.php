@@ -1,4 +1,15 @@
 <?php
+
+// wahai teman-teman sekalian
+
+// sesungguhya saat saya buat kode ini hanya saya dan tuhan yang ngerti
+
+// tapi setelah saya gaya-gayaan mau nambah fitur keamanan extra dan lupa nge commit hanya tuhan yang tau
+
+// sumpah aku harusnya ga ngubah sesuatu yang sudah berjalan :V
+
+// AI pun kek taik setiap kali kutanya apa yang salah malah dibuat kode dengan struktur baru aseemm
+
 session_start();
 require_once "config/database.php";
 
@@ -32,6 +43,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 }
 
                 $_SESSION['user'] = $user;
+                
+                // Log login activity
+                require_once "classes/Pengunjung.php";
+                $pengunjung = new Pengunjung($db, $user['id_akun'], 
+                    $user['nama_depan'] . ' ' . $user['nama_belakang'], 
+                    $user['email']);
+                $pengunjung->logKunjungan('login', 'Login ke sistem');
+                
                 header("Location: home.php");
                 exit;
             } else {
